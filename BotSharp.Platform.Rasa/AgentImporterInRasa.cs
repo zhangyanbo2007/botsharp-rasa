@@ -26,9 +26,9 @@ namespace BotSharp.Platform.Rasa
 
         public void LoadBuildinEntities(TAgent agent)
         {
-            /*agent.Intents.ForEach(intent =>
+            agent.Intents.ForEach(intent =>
             {
-                if (intent.UserSays != null)
+                /*if (intent.UserSays != null)
                 {
                     intent.UserSays.ForEach(us =>
                     {
@@ -39,8 +39,8 @@ namespace BotSharp.Platform.Rasa
                                 LoadBuildinEntityTypePerUserSay(agent, data);
                             });
                     });
-                }
-            });*/
+                }*/
+            });
         }
 
         private void LoadBuildinEntityTypePerUserSay(TAgent agent, IntentExpressionPart data)
@@ -78,7 +78,6 @@ namespace BotSharp.Platform.Rasa
 
         public void LoadCustomEntities(TAgent agent)
         {
-            // agent.Entities = new List<EntityType>();
         }
 
         public void LoadIntents(TAgent agent)
@@ -86,19 +85,15 @@ namespace BotSharp.Platform.Rasa
             string data = File.ReadAllText(Path.Combine(AgentDir, "corpus.json"));
             var rasa = JsonConvert.DeserializeObject<RasaAgentImportModel>(data);
 
-            /*agent.Intents = rasa.Data.UserSays.Select(x => x.Intent).Distinct().Select(x => new Intent { Name = x }).ToList();
-
-            agent.Intents.ForEach(intent => {
-                ImportIntentUserSays(intent, rasa.Data.UserSays);
-            });*/
-
+            agent.Intents = rasa.Data.Intents;
+            agent.Entities = rasa.Data.Entities;
         }
 
-        private void ImportIntentUserSays(Intent intent, List<RasaIntentExpression> sentences)
+        private void ImportIntentUserSays(RasaIntentExpression intent, List<RasaIntentExpression> sentences)
         {
-            intent.UserSays = new List<IntentExpression>();
+            var intents = new List<RasaIntentExpression>();
 
-            var userSays = sentences.Where(x => x.Intent == intent.Name).ToList();
+            var userSays = sentences.Where(x => x.Intent == intent.Intent).ToList();
 
             userSays.ForEach(say =>
             {
@@ -156,7 +151,7 @@ namespace BotSharp.Platform.Rasa
                 int second = 0;
                 expression.Data.ForEach(x => x.UpdatedTime = DateTime.UtcNow.AddSeconds(second++));
 
-                intent.UserSays.Add(expression);
+                intents.Add(say);
             });
         }
 

@@ -1,5 +1,6 @@
 ﻿using BotSharp.Core.Engines;
 using BotSharp.Platform.Models;
+using BotSharp.Platform.Models.MachineLearning;
 using BotSharp.Platform.Rasa.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +39,7 @@ namespace BotSharp.Platform.Rasa.Controllers
         /// <param name="project">Agent name or agent id</param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<String>> Train([FromQuery] string project, [FromQuery] string model)
+        public async Task<ActionResult<ModelMetaData>> Train([FromQuery] string project, [FromQuery] string model)
         {
             string agentDir = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", project);
             if (!Directory.Exists(agentDir))
@@ -46,45 +47,92 @@ namespace BotSharp.Platform.Rasa.Controllers
                 Directory.CreateDirectory(agentDir);
             }
 
-            if (string.IsNullOrEmpty(model))
+            string body = "";
+            using (var reader = new StreamReader(Request.Body))
             {
-                string dest = Directory.GetDirectories(agentDir).Where(x => x.Contains("model_")).Last();
-                //var agent = _platform.LoadAgentFromFile(dest);
-                model = dest.Split(Path.DirectorySeparatorChar).Last();
-                //await _platform.Train(new BotTrainOptions { AgentDir = agentDir, Model = model });
+                body = reader.ReadToEnd();
+            }
 
-                return Ok(new { info = model });
+            var agent = ImportAgent(project, body);
+
+            var corpus = builder.ExtractorCorpus(agent);
+
+            var meta = await builder.Train(agent, corpus, new BotTrainOptions { Model = model });
+
+            return meta;
+
+        }
+
+        private AgentModel ImportAgent(string project, string body)
+        {
+            Console.WriteLine($"Update agent from http post, data length: {body.Length}");
+
+            // save to file
+            // save corpus to agent dir
+            var projectPath = Path.Combine(AppDomain.CurrentDomain.GetData("DataPath").ToString(), "Projects", project);
+            var rawPath = Path.Combine(projectPath, "tmp");
+
+            // clear tmp dir
+            if (Directory.Exists(rawPath))
+            {
+                Directory.Delete(rawPath, true);
+            }
+
+            Directory.CreateDirectory(rawPath);
+
+            // Save raw data to file, then parse it to Agent instance.
+            var metaFileName = Path.Combine(rawPath, "meta.json");
+            System.IO.File.WriteAllText(metaFileName, JsonConvert.SerializeObject(new AgentImportHeader
+            {
+                Name = project,
+                Platform = PlatformType.Rasa,
+                Id = Guid.NewGuid().ToString()
+            }, new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            }));
+
+            // in order to unify the process.
+            var fileName = Path.Combine(rawPath, "corpus.json");
+
+            System.IO.File.WriteAllText(fileName, body);
+
+            /*string lang = Regex.Match(body, @"language:.+")?.Value;
+            if (!String.IsNullOrEmpty(lang))
+            {
+                lang = lang.Substring(11, 2);
+            }
+            string data = Regex.Match(body, @"data:([\s\S]*)")?.Value;
+            if (String.IsNullOrEmpty(data))
+            {
+                data = body;
             }
             else
             {
-                string body = "";
-                using (var reader = new StreamReader(Request.Body))
-                {
-                    body = reader.ReadToEnd();
-                }
+                data = data.Substring(6);
+            }*/
 
-                string lang = Regex.Match(body, @"language:.+")?.Value;
-                if (!String.IsNullOrEmpty(lang))
-                {
-                    lang = lang.Substring(11, 2);
-                }
-                string data = Regex.Match(body, @"data:([\s\S]*)")?.Value;
-                if (String.IsNullOrEmpty(data))
-                {
-                    data = body;
-                }
-                else
-                {
-                    data = data.Substring(6);
-                }
+            /*var agent = builder.GetAgentById(project);
 
-                var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(data);
-                rasa_nlu_data.Model = model;
-                rasa_nlu_data.Project = project;
-                var trainResult = await Train(rasa_nlu_data, project);
-
-                return trainResult;
+            if (agent == null)
+            {
+                agent = builder.GetAgentByName(project);
             }
+
+            var corpus = builder.ExtractorCorpus(agent);
+
+            var meta = await builder.Train(agent, corpus);*/
+
+            // var rasa_nlu_data = JsonConvert.DeserializeObject<RasaTrainRequestModel>(data);
+            //rasa_nlu_data.Model = model;
+            //rasa_nlu_data.Project = project;
+
+            var agent = builder.LoadAgentFromFile<AgentImporterInRasa<AgentModel>>(rawPath);
+            builder.SaveAgent(agent);
+
+            return agent;
         }
 
         private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)

@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core;
+using BotSharp.Core.Engines;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
@@ -105,12 +106,54 @@ namespace BotSharp.Platform.Rasa
 
         public TrainingCorpus ExtractorCorpus(TAgent agent)
         {
-            throw new NotImplementedException();
-        }
+            var corpus = new TrainingCorpus()
+            {
+                Entities = new List<TrainingEntity>(),
+                UserSays = new List<TrainingIntentExpression<TrainingIntentExpressionPart>>()
+            };
 
-        public Task<ModelMetaData> Train(TAgent agent, TrainingCorpus corpus)
-        {
-            throw new NotImplementedException();
+            List<string> entities = new List<string>();
+
+            // generate entity list
+            agent.Intents.ForEach(intent =>
+            {
+                intent.Entities.ForEach(entity =>
+                {
+                    if (!entities.Contains(entity.Entity))
+                    {
+                        corpus.Entities.Add(new TrainingEntity
+                        {
+                            Entity = entity.Entity,
+                            Values = new List<TrainingEntitySynonym>
+                            {
+                                new TrainingEntitySynonym
+                                {
+                                    Value = entity.Value,
+                                    Synonyms = new List<string>
+                                    {
+                                        entity.Value
+                                    }
+                                }
+                            }
+                        });
+                        entities.Add(entity.Entity);
+                    }
+                });
+            });
+
+            agent.Intents.ForEach(intent =>
+            {
+                var express = new TrainingIntentExpression<TrainingIntentExpressionPart>()
+                {
+                    Text = intent.Text,
+                    Intent = intent.Intent,
+                    Entities = intent.Entities
+                };
+                
+                corpus.UserSays.Add(express);
+            });
+
+            return corpus;
         }
     }
 }
