@@ -13,13 +13,15 @@ namespace BotSharp.Platform.Rasa.Controllers
         [HttpGet]
         public ActionResult<RasaVersionModel> Get()
         {
-            var status = new RasaStatusModel();
-            status.AvailableProjects = JObject.FromObject(new RasaProjectModel
+            var status = new RasaStatusModel
             {
-                Status = "ready",
-                AvailableModels = new List<string> { "model_XXXXXX" },
-                LoadedModels = new List<string> { "model_XXXXXX" }
-            });
+                AvailableProjects = JObject.FromObject(new RasaProjectModel
+                {
+                    Status = "ready",
+                    AvailableModels = new List<string> { "model_XXXXXX" },
+                    LoadedModels = new List<string> { "model_XXXXXX" }
+                })
+            };
 
             return Ok(status);
         }

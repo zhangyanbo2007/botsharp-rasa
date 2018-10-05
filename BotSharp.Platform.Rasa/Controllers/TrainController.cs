@@ -26,10 +26,9 @@ namespace BotSharp.Platform.Rasa.Controllers
     {
         private RasaAi<AgentModel> builder;
 
-        public TrainController(IConfiguration configuration)
+        public TrainController(RasaAi<AgentModel> configuration)
         {
-            builder = new RasaAi<AgentModel>();
-            builder.PlatformConfig = configuration.GetSection("RasaAi");
+            builder = configuration;
         }
 
         /// <summary>
@@ -53,9 +52,9 @@ namespace BotSharp.Platform.Rasa.Controllers
                 body = reader.ReadToEnd();
             }
 
-            var agent = ImportAgent(project, body);
+            var agent = await ImportAgent(project, body);
 
-            var corpus = builder.ExtractorCorpus(agent);
+            var corpus = await builder.ExtractorCorpus(agent);
 
             var meta = await builder.Train(agent, corpus, new BotTrainOptions { Model = model });
 
@@ -63,7 +62,7 @@ namespace BotSharp.Platform.Rasa.Controllers
 
         }
 
-        private AgentModel ImportAgent(string project, string body)
+        private async Task<AgentModel> ImportAgent(string project, string body)
         {
             Console.WriteLine($"Update agent from http post, data length: {body.Length}");
 
@@ -129,8 +128,8 @@ namespace BotSharp.Platform.Rasa.Controllers
             //rasa_nlu_data.Model = model;
             //rasa_nlu_data.Project = project;
 
-            var agent = builder.LoadAgentFromFile<AgentImporterInRasa<AgentModel>>(rawPath);
-            builder.SaveAgent(agent);
+            var agent = await builder.LoadAgentFromFile<AgentImporterInRasa<AgentModel>>(rawPath);
+            await builder.SaveAgent(agent);
 
             return agent;
         }
@@ -168,7 +167,7 @@ namespace BotSharp.Platform.Rasa.Controllers
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             }));
 
-            var agent = builder.GetAgentByName(project);
+            var agent = await builder.GetAgentByName(project);
 
             var info = await trainer.Train(agent, new BotTrainOptions
             {
