@@ -134,7 +134,7 @@ namespace BotSharp.Platform.Rasa.Controllers
             return agent;
         }
 
-        private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestModel request, [FromQuery] string project)
+        private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestViewModel request, [FromQuery] string project)
         {
             var trainer = new BotTrainer();
             if (String.IsNullOrEmpty(request.Project))

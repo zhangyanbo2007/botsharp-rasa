@@ -12,7 +12,7 @@ using System.Text;
 
 namespace BotSharp.Platform.Rasa
 {
-    public class RasaModule : IModule
+    public class ModuleInjector : IModule
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration config)
         {

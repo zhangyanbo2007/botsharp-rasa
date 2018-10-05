@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BotSharp.Platform.Rasa.Models
 {
-    public class RasaTrainRequestModel
+    public class RasaTrainRequestViewModel
     {
         public string Project { get; set; }
 
