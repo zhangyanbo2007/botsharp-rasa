@@ -31,7 +31,15 @@ namespace BotSharp.Platform.Rasa
         IPlatformBuilder<TAgent>
         where TAgent : AgentModel
     {
-        public AiResponse TextRequest(AiRequest request)
+
+        public RasaAi(IAgentStorageFactory agentStorageFactory)
+          : base(agentStorageFactory)
+        {
+
+        }
+
+
+        public async Task<AiResponse> TextRequest(AiRequest request)
         {
             AiResponse aiResponse = new AiResponse();
 
@@ -104,7 +112,7 @@ namespace BotSharp.Platform.Rasa
             return client.Execute<RasaResponse>(rest);
         }
 
-        public TrainingCorpus ExtractorCorpus(TAgent agent)
+        public async Task<TrainingCorpus> ExtractorCorpus(TAgent agent)
         {
             var corpus = new TrainingCorpus()
             {
@@ -154,6 +162,6 @@ namespace BotSharp.Platform.Rasa
             });
 
             return corpus;
-        }
+        } 
     }
 }

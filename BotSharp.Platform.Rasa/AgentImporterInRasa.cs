@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.Intents;
@@ -15,16 +16,18 @@ namespace BotSharp.Platform.Rasa
     {
         public string AgentDir { get; set; }
 
-        public TAgent LoadAgent(AgentImportHeader agentHeader)
+        public async Task<TAgent> LoadAgent(AgentImportHeader agentHeader)
         {
-            var agent = new TAgent();
-            agent.Id = agentHeader.Id;
-            agent.Name = agentHeader.Name;
+            var agent = new TAgent
+            {
+                Id = agentHeader.Id,
+                Name = agentHeader.Name
+            };
 
             return agent;
         }
 
-        public void LoadBuildinEntities(TAgent agent)
+        public async Task LoadBuildinEntities(TAgent agent)
         {
             agent.Intents.ForEach(intent =>
             {
@@ -76,11 +79,11 @@ namespace BotSharp.Platform.Rasa
             }*/
         }
 
-        public void LoadCustomEntities(TAgent agent)
+        public async Task LoadCustomEntities(TAgent agent)
         {
         }
 
-        public void LoadIntents(TAgent agent)
+        public async Task LoadIntents(TAgent agent)
         {
             string data = File.ReadAllText(Path.Combine(AgentDir, "corpus.json"));
             var rasa = JsonConvert.DeserializeObject<RasaAgentImportModel>(data);

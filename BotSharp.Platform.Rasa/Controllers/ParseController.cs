@@ -20,16 +20,15 @@ namespace BotSharp.Platform.Rasa.Controllers
     [Route("[controller]")]
     public class ParseController : ControllerBase
     {
-        private RasaAi<AgentModel> builder;
+        private readonly RasaAi<AgentModel> builder;
 
         /// <summary>
         /// Initialize dialog controller and get a platform instance
         /// </summary>
         /// <param name="platform"></param>
-        public ParseController(IConfiguration configuration)
+        public ParseController(RasaAi<AgentModel> configuration)
         {
-            builder = new RasaAi<AgentModel>();
-            builder.PlatformConfig = configuration.GetSection("RasaAi");
+            builder = configuration;
         }
 
         /// <summary>
