@@ -7,9 +7,11 @@ using System.Text;
 
 namespace BotSharp.Platform.Rasa.Models
 {
-    public sealed class RasaTrainingEntity : TrainingEntity
+    public sealed class RasaTrainingEntity
     {
         [JsonProperty("value")]
-        public override String Entity { get; set; }
+        public String Entity { get; set; }
+
+        public List<string> Synonyms { get; set; }
     }
 }
