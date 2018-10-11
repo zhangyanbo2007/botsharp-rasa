@@ -16,10 +16,10 @@ namespace BotSharp.Platform.Rasa
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration config)
         {
-            services.TryAddSingleton<IAgentStorageFactory, AgentStorageFactory>();
+            services.TryAddSingleton<IAgentStorageFactory<AgentModel>, AgentStorageFactory<AgentModel>>();
             services.TryAddSingleton<RasaAi<AgentModel>>();
 
-            NLUSetting setting = new NLUSetting();
+            var setting = new PlatformSettings();
             config.GetSection("rasaAi").Bind(setting);
             services.AddSingleton(setting);
             services.AddSingleton<AgentStorageInMemory<AgentModel>>();

@@ -32,7 +32,7 @@ namespace BotSharp.Platform.Rasa
         where TAgent : AgentModel
     {
 
-        public RasaAi(IAgentStorageFactory agentStorageFactory)
+        public RasaAi(IAgentStorageFactory<TAgent> agentStorageFactory)
           : base(agentStorageFactory)
         {
 
