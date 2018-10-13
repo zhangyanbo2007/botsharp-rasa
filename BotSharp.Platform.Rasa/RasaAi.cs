@@ -4,21 +4,8 @@ using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.AiRequest;
 using BotSharp.Platform.Models.AiResponse;
-using BotSharp.Platform.Models.MachineLearning;
 using BotSharp.Platform.Rasa.Models;
-using DotNetToolkit;
-using EntityFrameworkCore.BootKit;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using RestSharp;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BotSharp.Platform.Rasa
@@ -32,8 +19,8 @@ namespace BotSharp.Platform.Rasa
         where TAgent : AgentModel
     {
 
-        public RasaAi(IAgentStorageFactory<TAgent> agentStorageFactory)
-          : base(agentStorageFactory)
+        public RasaAi(IAgentStorageFactory<TAgent> agentStorageFactory, IPlatformSettings settings)
+            : base(agentStorageFactory, settings)
         {
 
         }
@@ -94,22 +81,6 @@ namespace BotSharp.Platform.Rasa
             Console.WriteLine(JsonConvert.SerializeObject(aiResponse.Result));*/
 
             return aiResponse;
-        }
-
-        private IRestResponse<RasaResponse> CallRasa(string projectId, string text, string model)
-        {
-            var config = (IConfiguration)AppDomain.CurrentDomain.GetData("Configuration");
-            var client = new RestClient($"{config.GetSection("RasaNlu:url").Value}");
-
-            var rest = new RestRequest("parse", Method.POST);
-            string json = JsonConvert.SerializeObject(new { Project = projectId, Q = text, Model = model },
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                });
-            rest.AddParameter("application/json", json, ParameterType.RequestBody);
-
-            return client.Execute<RasaResponse>(rest);
         }
 
         public async Task<TrainingCorpus> ExtractorCorpus(TAgent agent)

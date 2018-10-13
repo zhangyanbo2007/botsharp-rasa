@@ -1,4 +1,5 @@
 ﻿using BotSharp.Core.Engines;
+using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Models;
 using BotSharp.Platform.Models.MachineLearning;
 using BotSharp.Platform.Rasa.Models;
@@ -25,10 +26,12 @@ namespace BotSharp.Platform.Rasa.Controllers
     public class TrainController : ControllerBase
     {
         private RasaAi<AgentModel> builder;
+        private readonly IPlatformSettings settings;
 
-        public TrainController(RasaAi<AgentModel> configuration)
+        public TrainController(RasaAi<AgentModel> configuration, IPlatformSettings settings)
         {
             builder = configuration;
+            this.settings = settings;
         }
 
         /// <summary>
@@ -136,7 +139,7 @@ namespace BotSharp.Platform.Rasa.Controllers
 
         private async Task<ActionResult<String>> Train([FromBody] RasaTrainRequestViewModel request, [FromQuery] string project)
         {
-            var trainer = new BotTrainer();
+            var trainer = new BotTrainer(settings);
             if (String.IsNullOrEmpty(request.Project))
             {
                 request.Project = project;
