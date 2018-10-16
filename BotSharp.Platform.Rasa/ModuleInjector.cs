@@ -1,12 +1,11 @@
 ﻿using BotSharp.Core;
 using BotSharp.Core.AgentStorage;
 using BotSharp.Core.Modules;
-using BotSharp.Platform.Abstraction;
 using BotSharp.Platform.Rasa.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,7 +21,7 @@ namespace BotSharp.Platform.Rasa
             PlatformConfigServiceRegister.Register<PlatformSettings>("rasaAi", services, config);
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
 
         }
